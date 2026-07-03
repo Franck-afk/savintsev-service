@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  Client
+  Master
+  Owner
+}
+
+enum OrderStatus {
+  Pending
+  InProgress
+  Completed
+  Paid
+  Cancelled
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      UserRole @default(Client)
+  phone     String?
+  avatarUrl String?
+  lastSeen  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientOrders    Order[] @relation("ClientOrders")
+  masterOrders    Order[] @relation("MasterOrders")
+  sentMessages     Message[] @relation("Sender")
+  receivedMessages Message[] @relation("Receiver")
+  notifications   Notification[]
+  workingHours    WorkingHours[]
+  timeSlots       TimeSlot[]
+  tires           Tire[]
+
+  @@map("users")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  title        String
+  description  String?
+  status       OrderStatus @default(Pending)
+  currentStage Int         @default(0)
+  userId       String
+  masterId     String?
+  serviceType  String?
+  carInfo      String?
+  tireSize     String?
+  phone        String?
+  visitDate    DateTime?
+  price        Int?
+  paidAt       DateTime?
+  photos       Json        @default("[]")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  user        User      @relation("ClientOrders", fields: [userId], references: [id], onDelete: Cascade)
+  master      User?     @relation("MasterOrders", fields: [masterId], references: [id], onDelete: SetNull)
+  messages    Message[]
+  notifications Notification[]
+  timeSlot    TimeSlot?
+  payments    Payment[]
+
+  @@map("orders")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  senderId  String
+  receiverId String
+  orderId   String?
+  attachments Json     @default("[]")
+  readAt     DateTime?
+  createdAt    DateTime @default(now())
+
+  sender   User   @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User   @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  order    Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@map("messages")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  orderId   String?
+  type      String    @default("new_order")
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model WorkingHours {
+  id        String   @id @default(cuid())
+  masterId  String
+  dayOfWeek Int      // 0=Вс, 1=Пн ... 6=Сб
+  startTime String   // "09:00"
+  endTime   String   // "18:00"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  master User @relation(fields: [masterId], references: [id], onDelete: Cascade)
+
+  @@unique([masterId, dayOfWeek])
+  @@map("working_hours")
+}
+
+model TimeSlot {
+  id        String   @id @default(cuid())
+  masterId  String
+  date      DateTime // дата и время начала
+  duration  Int      @default(60) // минут
+  orderId   String   @unique
+  createdAt DateTime @default(now())
+
+  master User  @relation(fields: [masterId], references: [id], onDelete: Cascade)
+  order  Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([masterId, date])
+  @@map("time_slots")
+}
+
+enum TireSeason {
+  Winter
+  Summer
+  AllSeason
+}
+
+enum TireStatus {
+  Stored
+  Issued
+}
+
+model Tire {
+  id           String     @id @default(cuid())
+  brand        String
+  model        String?
+  size         String     // "205/55R16"
+  season       TireSeason @default(Summer)
+  quantity     Int        @default(4) // количество шин
+  receiptDate  DateTime   @default(now())
+  issueDate    DateTime?
+  location     String?    // место на стеллаже: "Стеллаж A, полка 3"
+  photoUrl     String?
+  notes        String?
+  status       TireStatus @default(Stored)
+  ownerId      String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("tires")
+}
+
+model CompanySettings {
+  id         String   @id @default(cuid())
+  name       String   @default("Шинный мастер")
+  address    String?
+  phone      String?
+  schedule   Json     @default("[]")
+  updatedAt  DateTime @updatedAt
+
+  @@map("company_settings")
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String
+  amount    Int      // сумма в копейках
+  status    String   @default("pending") // pending, paid, cancelled
+  method    String   @default("sbp")     // sbp, cash, card
+  qrData    String?  // данные для QR-кода
+  paidAt    DateTime?
+  confirmedBy String? // кто подтвердил оплату
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
