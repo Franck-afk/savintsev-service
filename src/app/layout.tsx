@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Inter } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
@@ -10,7 +10,7 @@ import "./globals.css";
 
 export const dynamic = "force-dynamic";
 
-const inter = Inter({
+const nunito = Nunito({
   subsets: ["latin", "cyrillic"],
   variable: "--font-gilroy",
   display: "swap",
@@ -34,7 +34,7 @@ export default async function RootLayout({
   const isDark = themeCookie?.value === "dark";
 
   return (
-    <html lang="ru" suppressHydrationWarning className={`h-full antialiased ${inter.variable} ${isDark ? "dark" : ""}`}>
+    <html lang="ru" suppressHydrationWarning className={`h-full antialiased ${nunito.variable} ${isDark ? "dark" : ""}`}>
       <body className="min-h-full flex flex-col">
         <ThemeInit />
         <SessionProvider>
