@@ -60,7 +60,7 @@ export function ChatMessage({ msg, isMine, canDelete, onDelete, onOpenViewer }: 
                     onClick={() => onOpenViewer(msg.attachments, i)}
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs ${
                       isMine
-                        ? "bg-white/20 text-white"
+                        ? "bg-primary/20 text-primary-foreground"
                         : "bg-background text-foreground border border-border"
                     }`}
                   >
