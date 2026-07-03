@@ -58,7 +58,11 @@ export function ChatMessage({ msg, isMine, canDelete, onDelete, onOpenViewer }: 
                 ) : (
                   <button
                     onClick={() => onOpenViewer(msg.attachments, i)}
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs bg-muted/50 text-foreground"
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs ${
+                      isMine
+                        ? "bg-white/20 text-white"
+                        : "bg-background text-foreground border border-border"
+                    }`}
                   >
                     <FileText className="size-3.5 shrink-0" />
                     <span className="truncate max-w-[120px]">{att.name}</span>
