@@ -31,7 +31,7 @@ export function ChatMessage({ msg, isMine, canDelete, onDelete, onOpenViewer }: 
           onlyEmoji
             ? ""
             : isMine
-              ? "bg-primary text-primary-foreground rounded-2xl rounded-br-md"
+              ? "bg-secondary text-secondary-foreground rounded-2xl rounded-br-md"
               : "bg-secondary text-secondary-foreground rounded-2xl rounded-bl-md"
         } ${isMine ? "text-right" : "text-left"}`}
       >
