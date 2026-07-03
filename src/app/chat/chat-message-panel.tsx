@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Send, Loader2, Smile, Paperclip, FileText, Image as ImageIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { notifyError } from "@/shared/lib/notifications";
 import EmojiPicker from "emoji-picker-react";
 import type { EmojiClickData } from "emoji-picker-react";
 import { Theme } from "emoji-picker-react";
@@ -79,8 +80,18 @@ export function MessagePanel({
       formData.append("file", file);
       try {
         const res = await fetch("/api/chat/upload", { method: "POST", body: formData });
-        if (res.ok) { const data: Attachment = await res.json(); setPendingAttachments((prev) => [...prev, data]); }
-      } catch { /* ignore */ }
+        if (res.ok) {
+          const data: Attachment = await res.json();
+          setPendingAttachments((prev) => [...prev, data]);
+        } else {
+          const err = await res.json();
+          console.error("Upload failed:", err.error);
+          notifyError(err.error || "Ошибка загрузки файла");
+        }
+      } catch (err) {
+        console.error("Upload error:", err);
+        notifyError("Ошибка сети при загрузке файла");
+      }
     }
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
