@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
@@ -10,14 +10,8 @@ import "./globals.css";
 
 export const dynamic = "force-dynamic";
 
-const gilroy = localFont({
-  src: [
-    { path: "../shared/fonts/Gilroy-Regular.woff2", weight: "400", style: "normal" },
-    { path: "../shared/fonts/Gilroy-Medium.woff2", weight: "500", style: "normal" },
-    { path: "../shared/fonts/Gilroy-SemiBold.woff2", weight: "600", style: "normal" },
-    { path: "../shared/fonts/Gilroy-Bold.woff2", weight: "700", style: "normal" },
-    { path: "../shared/fonts/Gilroy-ExtraBold.woff2", weight: "800", style: "normal" },
-  ],
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
   variable: "--font-gilroy",
   display: "swap",
 });
@@ -40,7 +34,7 @@ export default async function RootLayout({
   const isDark = themeCookie?.value === "dark";
 
   return (
-    <html lang="ru" suppressHydrationWarning className={`h-full antialiased ${gilroy.variable} ${isDark ? "dark" : ""}`}>
+    <html lang="ru" suppressHydrationWarning className={`h-full antialiased ${inter.variable} ${isDark ? "dark" : ""}`}>
       <body className="min-h-full flex flex-col">
         <ThemeInit />
         <SessionProvider>
