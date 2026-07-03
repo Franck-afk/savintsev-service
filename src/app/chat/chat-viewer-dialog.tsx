@@ -71,10 +71,19 @@ export function ViewerDialog({ open, onOpenChange, attachments, index, onIndexCh
             </div>
           </div>
 
-          <a href={att.url} download={att.name} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const a = document.createElement("a");
+              a.href = att.url;
+              a.download = att.name;
+              a.click();
+            }}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20"
+          >
             <Download className="size-4" />
             Скачать {att.name}
-          </a>
+          </button>
 
           {attachments.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3">
