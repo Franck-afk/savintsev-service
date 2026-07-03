@@ -170,7 +170,7 @@ export function DialogsList({
                       <span className="ml-2 shrink-0 text-xs text-muted-foreground">{formatTime(dialog.lastTime)}</span>
                     </div>
                     <p className="mt-0.5 truncate text-sm text-muted-foreground">{dialog.lastMessage}</p>
-                    {dialog.order && <p className="mt-0.5 truncate text-xs text-primary/60">Заказ: {dialog.order.title}</p>}
+                    {dialog.order && <p className="mt-0.5 truncate text-xs text-secondary-foreground/70">Заказ: {dialog.order.title}</p>}
                   </div>
                   {dialog.unread > 0 && (
                     <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">{dialog.unread}</div>
