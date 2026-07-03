@@ -187,61 +187,79 @@ button, card, dialog, sheet, badge, select, calendar, popover, tooltip, separato
 
 ## Деплой на Vercel
 
-### 1. Создай удалённую PostgreSQL (Neon)
+### 1. Создай GitHub-репозиторий
 
-1. Зарегистрируйся на [neon.tech](https://neon.tech) (бесплатно, без банковской карты)
-2. Создай новый проект:
-   - Название: любое (например `shinny-master`)
-   - Регион: ближайший (Europe-West)
-3. В панели Neon скопируй **Pooled connection string** — он выглядит так:
+1. Зайди на https://github.com/new
+2. Имя репозитория: `savintsev-service` (или любое)
+3. **Не ставь** галочки README, .gitignore, license
+4. Нажми **Create repository**
+
+### 2. Свяжи локальный проект с GitHub
+
+```bash
+cmd /c "git remote add origin https://github.com/ТВОЙ_ЮЗЕР/savintsev-service.git"
+cmd /c "git add ."
+cmd /c "git commit -m "first commit""
+cmd /c "git branch -M main"
+cmd /c "git push -u origin main"
+```
+
+### 3. Создай удалённую PostgreSQL (Neon)
+
+1. Зарегистрируйся на [neon.tech](https://neon.tech) (бесплатно)
+2. Создай новый проект → выбери регион
+3. Скопируй **Connection string** (Pooled connection):
    ```
-   postgresql://neondb_owner:xxxx@ep-xxx.us-east-2.aws.neon.tech/shinny_master?sslmode=require
+   postgresql://neondb_owner:xxxx@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
    ```
-4. Выполни миграцию на новую БД:
+4. Выполни миграцию:
    ```bash
-   cmd /c "npx prisma db push"
+   set DATABASE_URL=postgresql://neondb_owner:xxxx@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+   npx prisma db push
    ```
 
-### 2. Установи Vercel CLI
+### 4. Настрой Cloudinary (для загрузки файлов)
 
-```bash
-cmd /c "npm install -g vercel"
-```
+1. Зарегистрируйся на [cloudinary.com](https://cloudinary.com) (бесплатно)
+2. В Dashboard скопируй **Cloud Name**, **API Key**, **API Secret**
 
-### 3. Разверни проект
+### 5. Разверни на Vercel
 
-```bash
-cmd /c "vercel"
-```
-
-Следуй инструкциям в терминале:
-- Логин через браузер (создай аккаунт если нет)
-- **Link to existing project?** → No
-- **Project name** → shinny-master (или любое)
-- **Directory** → `./` (текущая)
-
-### 4. Настрой переменные окружения
-
-В панели Vercel (vercel.com → проект → Settings → Environment Variables) добавь:
+1. Зайди на https://vercel.com/new
+2. **Import Git Repository** → выбери свой репозиторий
+3. Framework: Next.js (определится автоматически)
+4. Нажми **Environment Variables** и добавь:
 
 | Переменная | Значение |
 |------------|----------|
 | `DATABASE_URL` | Строка подключения из Neon |
-| `AUTH_SECRET` | `2f183de4154622e288ff6eb0943441fe3c039b48ddbadb04320eca331d08d9b6` |
-| `NEXTAUTH_URL` | URL твоего проекта на Vercel (например `https://shinny-master.vercel.app`) |
-| `SEED_SECRET` | Секретный ключ для создания владельца (произвольная строка) |
+| `AUTH_SECRET` | Случайная hex-строка (напр. `2f183de4154622e288ff6eb0943441fe3c039b48ddbadb04320eca331d08d9b6`) |
+| `NEXTAUTH_URL` | URL проекта (напр. `https://savintsev-service.vercel.app`) |
+| `SEED_SECRET` | Любая строка (напр. `my-secret-key-2024`) |
+| `CLOUDINARY_CLOUD_NAME` | Cloud Name из Cloudinary |
+| `CLOUDINARY_API_KEY` | API Key из Cloudinary |
+| `CLOUDINARY_API_SECRET` | API Secret из Cloudinary |
 
-### 5. Деплой в продакшн
-
-```bash
-cmd /c "vercel --prod"
-```
+5. Нажми **Deploy**
 
 ### 6. Создай первого владельца
 
-Открой `https://твой-проект.vercel.app/auth/seed?secret=ТВОЙ_SEED_SECRET` и создай аккаунт владельца.
+Открой `https://твой-проект.vercel.app` — сайт автоматически покажет форму **"Первоначальная настройка"**. Введи имя, email, пароль и нажми **"Создать владельца"**.
 
-> **Логика seed:** Одноразовый процесс. API проверяет `SEED_SECRET` из `.env` и что в базе нет пользователей. После создания владелец автоматически логинится. Повторное создание невозможно — `count(users) > 0` блокирует запрос.
+> **Как это работает:** При первом запуске API проверяет количество пользователей. Если 0 — показывается форма создания Owner (без секретов и URL-параметров). Если >0 — редирект на логин.
+
+### 7. Настрой постоянный домен
+
+1. В Vercel: **Settings → Domains → Add Domain**
+2. Введи домен (напр. `mysite.ru`)
+3. Vercel покажет DNS-записи. Зайди к регистратору и добавь:
+
+| Тип | Имя | Значение |
+|-----|-----|----------|
+| A | @ | `76.76.21.21` |
+| CNAME | www | `cname.vercel-dns.com` |
+
+4. Подожди 5-30 минут пока DNS обновится
 
 ---
 
