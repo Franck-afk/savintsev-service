@@ -4,6 +4,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* v2 */
+
 
 
 @theme inline {
