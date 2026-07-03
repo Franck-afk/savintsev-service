@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { auth } from "@/shared/config/auth";
+import { uploadToCloudinary } from "@/shared/lib/cloudinary";
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg", "image/png", "image/gif", "image/webp",
@@ -11,7 +10,7 @@ const ALLOWED_TYPES = new Set([
   "text/plain",
   "application/zip", "application/x-rar-compressed",
 ]);
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_SIZE = 10 * 1024 * 1024;
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -37,20 +36,21 @@ export async function POST(request: Request) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const ext = file.name.split(".").pop() || "";
+    const uniqueName = `chat/${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const isImage = file.type.startsWith("image/");
 
-    const ext = path.extname(file.name) || "";
+    const result = await uploadToCloudinary(
+      buffer,
+      "chat",
+      uniqueName,
+      isImage ? "image" : "raw"
+    );
+
     const sanitizedName = file.name.replace(/[^a-zA-Zа-яА-Я0-9._-]/g, "_");
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "chat");
-    await mkdir(uploadDir, { recursive: true });
-    const filePath = path.join(uploadDir, uniqueName);
-    await writeFile(filePath, buffer);
-
-    const url = `/uploads/chat/${uniqueName}`;
 
     return NextResponse.json({
-      url,
+      url: result.url,
       name: sanitizedName || file.name,
       type: file.type,
       size: file.size,

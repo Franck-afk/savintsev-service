@@ -1,11 +1,10 @@
 import { auth } from "@/shared/config/auth";
 import { prisma } from "@/shared/api/prisma";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { uploadToCloudinary } from "@/shared/lib/cloudinary";
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE = 5 * 1024 * 1024;
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -31,23 +30,16 @@ export async function POST(request: Request) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const filename = `avatar-${session.user.id}-${Date.now()}`;
 
-    const ext = file.name.split(".").pop() || "jpg";
-    const filename = `avatar-${session.user.id}-${Date.now()}.${ext}`;
-    const dir = path.join(process.cwd(), "public", "uploads", "avatars");
-    const filepath = path.join(dir, filename);
-
-    await mkdir(dir, { recursive: true });
-    await writeFile(filepath, buffer);
-
-    const avatarUrl = `/uploads/avatars/${filename}`;
+    const result = await uploadToCloudinary(buffer, "avatars", filename, "image");
 
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { avatarUrl },
+      data: { avatarUrl: result.url },
     });
 
-    return NextResponse.json({ avatarUrl });
+    return NextResponse.json({ avatarUrl: result.url });
   } catch {
     return NextResponse.json({ error: "Ошибка загрузки" }, { status: 500 });
   }

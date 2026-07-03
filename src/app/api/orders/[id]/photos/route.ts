@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/shared/api/prisma";
 import { auth } from "@/shared/config/auth";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { uploadToCloudinary, deleteFromCloudinary } from "@/shared/lib/cloudinary";
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
-const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE = 5 * 1024 * 1024;
 
 export async function POST(
   request: Request,
@@ -41,23 +40,18 @@ export async function POST(
     return NextResponse.json({ error: "Только изображения (JPEG, PNG, GIF, WebP)" }, { status: 400 });
   }
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const filename = `order-${id}-${Date.now()}.${ext}`;
-  const dir = join(process.cwd(), "public", "uploads", "orders");
-
-  await mkdir(dir, { recursive: true });
   const buffer = Buffer.from(await file.arrayBuffer());
-  await writeFile(join(dir, filename), buffer);
+  const filename = `order-${id}-${Date.now()}`;
 
-  const photoUrl = `/uploads/orders/${filename}`;
+  const result = await uploadToCloudinary(buffer, "orders", filename, "image");
 
-  const photos = [...(order.photos as string[] || []), photoUrl];
+  const photos = [...(order.photos as string[] || []), result.url];
   await prisma.order.update({
     where: { id },
     data: { photos },
   });
 
-  return NextResponse.json({ url: photoUrl });
+  return NextResponse.json({ url: result.url });
 }
 
 export async function DELETE(
@@ -84,6 +78,17 @@ export async function DELETE(
 
   if (session.user.role === "Client" && order.userId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // Extract public_id from Cloudinary URL
+  const parts = photoUrl.split("/");
+  const publicIdWithExt = parts.slice(parts.indexOf("upload") + 1).join("/");
+  const publicId = publicIdWithExt.replace(/\.[^.]+$/, "");
+
+  try {
+    await deleteFromCloudinary(publicId);
+  } catch {
+    // Ignore deletion errors
   }
 
   const photos = (order.photos as string[] || []).filter((p: string) => p !== photoUrl);

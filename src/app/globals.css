@@ -229,12 +229,19 @@
   border-radius: 12px !important;
   overflow: hidden !important;
 }
-.EmojiPickerReact button.emoji {
+.EmojiPickerReact button.emoji,
+.EmojiPickerReact div[data-name="emoji"] button,
+.EmojiPickerReact [role="gridcell"] button,
+.EmojiPickerReact .epr-emoji-category button,
+div.EmojiPickerReact button.emoji {
   background: transparent !important;
   border-radius: 8px !important;
 }
-.EmojiPickerReact button.emoji span {
-  font-size: 28px !important;
+.EmojiPickerReact button.emoji span,
+.EmojiPickerReact button.emoji > span,
+.EmojiPickerReact div[data-name="emoji"] button span,
+div.EmojiPickerReact button.emoji span {
+  font-size: 32px !important;
   line-height: 1.4 !important;
 }
 .EmojiPickerReact::-webkit-scrollbar {
