@@ -73,12 +73,12 @@ export function Header({ user }: HeaderProps) {
               <Image src={user.avatarUrl} alt="" fill className="rounded-full object-cover" />
             </div>
           ) : (
-            <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-sm font-semibold text-secondary-foreground">
               {(user.name || "П")[0]}
             </div>
           )}
 
-          <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+          <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
             {roleLabels[user.role || ""] || user.role || "Клиент"}
           </span>
 

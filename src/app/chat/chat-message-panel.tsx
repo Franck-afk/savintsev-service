@@ -108,7 +108,7 @@ export function MessagePanel({
           <span className={`text-xs ${onlineUsers.has(activeDialog.interlocutor.id) ? "text-green-500" : "text-muted-foreground"}`}>
             {onlineUsers.has(activeDialog.interlocutor.id) ? "Онлайн" : "не в сети"}
           </span>
-          {activeDialog.order && <p className="text-xs text-muted-foreground">Заказ: {activeDialog.order.title}</p>}
+          {activeDialog.order && <p className="text-xs text-secondary-foreground/70">Заказ: {activeDialog.order.title}</p>}
         </div>
       </div>
 

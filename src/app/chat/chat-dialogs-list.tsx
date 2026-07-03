@@ -69,7 +69,7 @@ export function DialogsList({
           </div>
           <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
             <DialogTrigger asChild>
-              <button className="rounded-lg px-4 py-2 text-sm font-medium bg-primary text-primary-foreground transition-colors hover:bg-primary/90">
+              <button className="rounded-lg px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground transition-colors hover:bg-secondary/80">
                 + Новый диалог
               </button>
             </DialogTrigger>

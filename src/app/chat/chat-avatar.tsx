@@ -13,7 +13,7 @@ export function ChatAvatar({
       {src ? (
         <Image src={src} alt="" fill className="rounded-full object-cover" />
       ) : (
-        <div className="flex h-full w-full items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
+        <div className="flex h-full w-full items-center justify-center rounded-full bg-secondary text-sm font-medium text-secondary-foreground">
           {initials}
         </div>
       )}
