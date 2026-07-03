@@ -229,6 +229,14 @@
   border-radius: 12px !important;
   overflow: hidden !important;
 }
+.EmojiPickerReact button.emoji {
+  background: transparent !important;
+  border-radius: 8px !important;
+}
+.EmojiPickerReact button.emoji span {
+  font-size: 28px !important;
+  line-height: 1.4 !important;
+}
 .EmojiPickerReact::-webkit-scrollbar {
   width: 5px;
 }
