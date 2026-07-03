@@ -55,9 +55,9 @@ export async function POST(request: Request) {
       type: file.type,
       size: file.size,
     });
-  } catch (error) {
-    console.error("Upload error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (error: unknown) {
+    console.error("Upload error:", JSON.stringify(error, Object.getOwnPropertyNames(error as object)));
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json({ error: `Ошибка загрузки: ${message}` }, { status: 500 });
   }
 }
