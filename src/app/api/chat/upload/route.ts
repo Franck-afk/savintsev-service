@@ -55,7 +55,9 @@ export async function POST(request: Request) {
       type: file.type,
       size: file.size,
     });
-  } catch {
-    return NextResponse.json({ error: "Ошибка загрузки файла" }, { status: 500 });
+  } catch (error) {
+    console.error("Upload error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: `Ошибка загрузки: ${message}` }, { status: 500 });
   }
 }
