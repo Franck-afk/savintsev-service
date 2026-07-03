@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Nunito } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
@@ -7,8 +6,6 @@ import { SessionProvider } from "next-auth/react";
 import { OnlineProvider } from "@/features/chat/ui/online-provider";
 import { ThemeInit } from "./theme-init";
 import "./globals.css";
-
-export const dynamic = "force-dynamic";
 
 const nunito = Nunito({
   subsets: ["latin", "cyrillic"],
@@ -24,17 +21,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const themeCookie = cookieStore.get("theme");
-  const isDark = themeCookie?.value === "dark";
-
   return (
-    <html lang="ru" suppressHydrationWarning className={`h-full antialiased ${nunito.variable} ${isDark ? "dark" : ""}`}>
+    <html lang="ru" suppressHydrationWarning className={`h-full antialiased ${nunito.variable}`}>
       <body className="min-h-full flex flex-col">
         <ThemeInit />
         <SessionProvider>
