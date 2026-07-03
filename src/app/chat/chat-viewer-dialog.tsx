@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { X, FileText } from "lucide-react";
+import { X, FileText, Download } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,8 +22,22 @@ interface ViewerDialogProps {
 
 export function ViewerDialog({ open, onOpenChange, attachments, index, onIndexChange }: ViewerDialogProps) {
   const att = attachments[index];
+  const [textContent, setTextContent] = useState<string | null>(null);
+  const [loadingText, setLoadingText] = useState(false);
+
+  useEffect(() => {
+    if (!att || !open) { setTextContent(null); return; }
+    if (att.type === "text/plain" || att.name?.endsWith(".txt")) {
+      setLoadingText(true);
+      fetch(att.url).then(r => r.text()).then(setTextContent).catch(() => setTextContent(null)).finally(() => setLoadingText(false));
+    } else {
+      setTextContent(null);
+    }
+  }, [att, open]);
+
   if (!att) return null;
   const isImage = att.type.startsWith("image/");
+  const isText = att.type === "text/plain" || att.name?.endsWith(".txt");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,17 +51,30 @@ export function ViewerDialog({ open, onOpenChange, attachments, index, onIndexCh
             <div className={`w-full ${isImage ? "" : "flex-1"} flex items-center justify-center`}>
               {isImage ? (
                 <Image src={att.url} alt={att.name} width={1200} height={800} className="max-h-[75vh] max-w-full rounded-lg object-contain" />
+              ) : isText ? (
+                <div className="w-full max-w-4xl">
+                  {loadingText ? (
+                    <div className="flex items-center justify-center h-[65vh] text-white/50">Загрузка...</div>
+                  ) : textContent !== null ? (
+                    <pre className="h-[65vh] w-full overflow-auto rounded-lg bg-white/5 p-4 text-sm text-white/90 whitespace-pre-wrap font-mono">
+                      {textContent}
+                    </pre>
+                  ) : (
+                    <iframe src={att.url} title={att.name} className="h-[65vh] w-full rounded-lg bg-white" />
+                  )}
+                </div>
               ) : (
                 <div className="flex w-full max-w-4xl flex-col items-center gap-3">
                   <iframe src={att.url} title={att.name} className="h-[65vh] w-full rounded-lg" style={{ backgroundColor: "var(--card)" }} />
-                  <a href={att.url} download={att.name} className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20">
-                    <FileText className="size-4" />
-                    Скачать {att.name}
-                  </a>
                 </div>
               )}
             </div>
           </div>
+
+          <a href={att.url} download={att.name} className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/20">
+            <Download className="size-4" />
+            Скачать {att.name}
+          </a>
 
           {attachments.length > 1 && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3">
