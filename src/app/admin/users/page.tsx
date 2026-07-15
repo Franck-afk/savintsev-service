@@ -7,13 +7,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Plus, Loader2, Trash2, Pencil } from "lucide-react";
+import { Plus, Loader2, Trash2, Pencil, Copy, Check } from "lucide-react";
 import { AdminUserForm } from "./admin-user-form";
 import { CredentialsDialog } from "./admin-credentials-dialog";
 
 interface User {
   id: string; email: string; name: string | null; role: string;
-  phone: string | null; avatarUrl: string | null; createdAt: string;
+  phone: string | null; avatarUrl: string | null; createdAt: string; password: string;
 }
 
 const roleLabels: Record<string, string> = { Owner: "👑 Владелец", Master: "🔧 Мастер", Client: "👤 Клиент" };
@@ -32,6 +32,7 @@ export default function AdminUsersPage() {
   const [editSaving, setEditSaving] = useState(false);
   const [created, setCreated] = useState<{ email: string; password: string } | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try { const res = await fetch("/api/admin/users"); if (res.ok) setUsers(await res.json()); } catch {}
@@ -103,14 +104,14 @@ export default function AdminUsersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {["Имя", "Email", "Телефон", "Роль", "Дата создания", ""].map((h, i) => (
-                    <th key={i} className={`px-4 py-3 font-medium text-muted-foreground ${i === 5 ? "text-right" : "text-left"}`}>{h}</th>
+                  {["Имя", "Email", "Телефон", "Роль", "Пароль", "Дата", ""].map((h, i) => (
+                    <th key={i} className={`px-4 py-3 font-medium text-muted-foreground ${i === 6 ? "text-right" : "text-left"}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {users.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Нет пользователей</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Нет пользователей</td></tr>
                 ) : users.map((u) => (
                   <tr key={u.id} className="border-b border-border last:border-0 hover:bg-muted/50 transition-colors">
                     <td className="px-4 py-3">
@@ -128,6 +129,21 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                     <td className="px-4 py-3 text-muted-foreground">{u.phone || "—"}</td>
                     <td className="px-4 py-3"><Badge variant={roleColor(u.role) as "default" | "secondary" | "outline"}>{roleLabels[u.role] || u.role}</Badge></td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <code className="max-w-[140px] truncate text-xs text-muted-foreground" title={u.password}>{u.password}</code>
+                        <button
+                          className="shrink-0 rounded p-0.5 hover:bg-muted"
+                          onClick={() => {
+                            navigator.clipboard.writeText(u.password);
+                            setCopiedId(u.id);
+                            setTimeout(() => setCopiedId(null), 1500);
+                          }}
+                        >
+                          {copiedId === u.id ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5 text-muted-foreground" />}
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">{new Date(u.createdAt).toLocaleDateString("ru-RU")}</td>
                     <td className="px-4 py-3 text-right">
                       {u.role !== "Owner" && (
