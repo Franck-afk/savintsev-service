@@ -2,7 +2,12 @@ import { redirect } from "next/navigation";
 import { auth } from "@/shared/config/auth";
 
 export async function requireSession() {
-  const session = await auth();
+  let session;
+  try {
+    session = await auth();
+  } catch {
+    redirect("/auth/login");
+  }
 
   if (!session?.user) {
     redirect("/auth/login");
