@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { AuthInput } from "@/features/auth/ui/auth-input";
 import { Mail, Phone, Calendar, Settings, Shield, Pencil } from "lucide-react";
+import { OnlineMastersWidget } from "@/widgets/online-masters";
 
 interface Stats {
   total: number
@@ -186,6 +187,10 @@ export default function ClientAccountPage() {
         {user?.createdAt
           ? `Зарегистрирован: ${new Date(user.createdAt).toLocaleDateString("ru-RU")}`
           : "Дата регистрации недоступна"}
+      </div>
+
+      <div className="mt-6">
+        <OnlineMastersWidget />
       </div>
     </div>
   );

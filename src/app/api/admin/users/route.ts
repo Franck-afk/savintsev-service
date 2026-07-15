@@ -17,7 +17,7 @@ export async function GET() {
   }
 
   const users = await prisma.user.findMany({
-    select: { id: true, email: true, name: true, role: true, phone: true, avatarUrl: true, createdAt: true, password: true },
+    select: { id: true, email: true, name: true, role: true, phone: true, avatarUrl: true, isVisible: true, createdAt: true, password: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -67,7 +67,7 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { id, email, name, phone, role, password } = body;
+    const { id, email, name, phone, role, password, isVisible } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID обязателен" }, { status: 400 });
@@ -87,11 +87,12 @@ export async function PATCH(request: Request) {
     if (phone !== undefined) data.phone = phone || null;
     if (role && ["Master", "Client"].includes(role)) data.role = role;
     if (password && password.length >= 6) data.password = await bcrypt.hash(password, 12);
+    if (typeof isVisible === "boolean") data.isVisible = isVisible;
 
     const user = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, role: true, phone: true, avatarUrl: true, createdAt: true },
+      select: { id: true, email: true, name: true, role: true, phone: true, avatarUrl: true, isVisible: true, createdAt: true },
     });
 
     return NextResponse.json(user);

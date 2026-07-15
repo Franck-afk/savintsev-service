@@ -7,13 +7,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Plus, Loader2, Trash2, Pencil, Copy, Check } from "lucide-react";
+import { Plus, Loader2, Trash2, Pencil, Copy, Check, Eye, EyeOff } from "lucide-react";
 import { AdminUserForm } from "./admin-user-form";
 import { CredentialsDialog } from "./admin-credentials-dialog";
 
 interface User {
   id: string; email: string; name: string | null; role: string;
-  phone: string | null; avatarUrl: string | null; createdAt: string; password: string;
+  phone: string | null; avatarUrl: string | null; isVisible: boolean; createdAt: string; password: string;
 }
 
 const roleLabels: Record<string, string> = { Owner: "👑 Владелец", Master: "🔧 Мастер", Client: "👤 Клиент" };
@@ -55,6 +55,15 @@ export default function AdminUsersPage() {
   const handleDelete = async (id: string) => {
     const res = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" });
     if (res.ok) fetchUsers();
+  };
+
+  const toggleVisibility = async (user: User) => {
+    await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: user.id, isVisible: !user.isVisible }),
+    });
+    fetchUsers();
   };
 
   const openEdit = (user: User) => {
@@ -148,6 +157,17 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 text-right">
                       {u.role !== "Owner" && (
                         <div className="flex items-center justify-end gap-1">
+                          {u.role === "Master" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`size-8 ${u.isVisible ? "text-green-500" : "text-muted-foreground"}`}
+                              onClick={() => toggleVisibility(u)}
+                              title={u.isVisible ? "Виден клиентам" : "Скрыт от клиентов"}
+                            >
+                              {u.isVisible ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(u)}><Pencil className="size-4" /></Button>
                           <Button variant="ghost" size="icon" className="size-8 text-destructive" onClick={() => setDeletingId(u.id)}><Trash2 className="size-4" /></Button>
                         </div>

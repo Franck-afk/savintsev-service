@@ -14,6 +14,7 @@ interface Master {
   id: string;
   name: string | null;
   avatarUrl: string | null;
+  isOnline: boolean;
 }
 
 interface SlotsResponse {
@@ -171,9 +172,11 @@ export function BookingClient() {
                           {(master.name || "?")[0]}
                         </div>
                       )}
+                      <div className={`absolute bottom-0 right-0 size-4 rounded-full border-2 border-background ${master.isOnline ? "bg-green-500" : "bg-gray-400"}`} />
                     </div>
                     <div>
                       <p className="font-medium">{master.name || "Мастер"}</p>
+                      <p className="text-xs text-muted-foreground">{master.isOnline ? "Онлайн" : "Офлайн"}</p>
                     </div>
                   </button>
                 ))}

@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { ClipboardList, Wrench, CheckCircle, Clock, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { OnlineMastersWidget } from "@/widgets/online-masters";
 
 interface RoleDashboardData {
   totalOrders: number;
@@ -213,27 +214,28 @@ export function RoleDashboard({ data, role }: { data: RoleDashboardData; role: s
           </ChartCard>
         </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Быстрые действия</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {role === "Client" && (
-              <>
-                <Link href="/booking" className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-                  <ClipboardList className="size-4 text-muted-foreground" />
-                  Записаться на сервис
-                </Link>
-                <Link href="/orders" className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-                  <Wrench className="size-4 text-muted-foreground" />
-                  Мои заказы
-                </Link>
-                <Link href="/chat" className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-                  <MessageSquare className="size-4 text-muted-foreground" />
-                  Написать мастеру
-                </Link>
-              </>
-            )}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Быстрые действия</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {role === "Client" && (
+                <>
+                  <Link href="/booking" className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+                    <ClipboardList className="size-4 text-muted-foreground" />
+                    Записаться на сервис
+                  </Link>
+                  <Link href="/orders" className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+                    <Wrench className="size-4 text-muted-foreground" />
+                    Мои заказы
+                  </Link>
+                  <Link href="/chat" className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
+                    <MessageSquare className="size-4 text-muted-foreground" />
+                    Написать мастеру
+                  </Link>
+                </>
+              )}
             {role === "Master" && (
               <>
                 <Link href="/orders" className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
@@ -252,6 +254,8 @@ export function RoleDashboard({ data, role }: { data: RoleDashboardData; role: s
             )}
           </CardContent>
         </Card>
+        {role === "Client" && <OnlineMastersWidget />}
+        </div>
       </div>
     </div>
   );
