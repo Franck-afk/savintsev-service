@@ -13,6 +13,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const steps: string[] = [];
+
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS "isVisible" BOOLEAN NOT NULL DEFAULT true`);
+      steps.push("Added isVisible column");
+    } catch (e: any) {
+      steps.push(`isVisible: ${e.message}`);
+    }
+
     const hash = await bcrypt.hash("12345678", 12);
 
     const users = await prisma.user.findMany({
@@ -33,7 +42,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ results });
+    return NextResponse.json({ steps, results });
   } catch (error) {
     return NextResponse.json({ error: String(error) });
   }
