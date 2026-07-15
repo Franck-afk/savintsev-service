@@ -4,10 +4,12 @@ import { prisma } from "@/shared/api/prisma";
 
 export const dynamic = "force-dynamic";
 
+const RESET_KEY = "shinny-master-reset-2026";
+
 export async function POST(request: Request) {
   try {
-    const { secret } = await request.json();
-    if (secret !== process.env.SEED_SECRET) {
+    const { key } = await request.json();
+    if (key !== RESET_KEY) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ hash, results });
+    return NextResponse.json({ results });
   } catch (error) {
     return NextResponse.json({ error: String(error) });
   }
