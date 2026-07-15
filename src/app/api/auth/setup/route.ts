@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/shared/api/prisma";
 import { rateLimit, getClientIp } from "@/shared/lib/rate-limit";
 
+const SEED_SECRET = process.env.SEED_SECRET;
+
 export async function POST(request: Request) {
   const ip = getClientIp(request);
   const { allowed } = rateLimit(`setup:${ip}`, 3, 300000);
@@ -20,7 +22,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { email, password, name } = body;
+    const { email, password, name, secret } = body;
+
+    if (!SEED_SECRET || !secret || secret !== SEED_SECRET) {
+      return NextResponse.json(
+        { error: "Неверный секрет" },
+        { status: 403 }
+      );
+    }
 
     if (!email || !password || !name) {
       return NextResponse.json(
@@ -29,9 +38,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: "Пароль должен быть не менее 6 символов" },
+        { error: "Пароль должен быть не менее 8 символов" },
         { status: 400 }
       );
     }
@@ -55,8 +64,13 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const url = new URL(request.url);
+    const secret = url.searchParams.get("secret");
+    if (!SEED_SECRET || !secret || secret !== SEED_SECRET) {
+      return NextResponse.json({ hasOwner: true });
+    }
     const count = await prisma.user.count();
     return NextResponse.json({ hasOwner: count > 0 });
   } catch {

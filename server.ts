@@ -44,11 +44,20 @@ app.prepare().then(() => {
     handler(req, res);
   });
 
-  io.on("connection", (socket: ServerSocket) => {
+  io.use(async (socket, next) => {
     const userId = socket.handshake.query.userId as string | undefined;
-    if (userId) {
-      socket.join(userId);
+    if (!userId || typeof userId !== "string" || userId.length < 5 || userId.length > 30) {
+      return next(new Error("Invalid userId"));
     }
+    if (!/^[a-z0-9]+$/.test(userId)) {
+      return next(new Error("Invalid userId format"));
+    }
+    next();
+  });
+
+  io.on("connection", (socket: ServerSocket) => {
+    const userId = socket.handshake.query.userId as string;
+    socket.join(userId);
 
     socket.on("send-message", (data: MessagePayload) => {
       io.to(data.receiverId).emit("new-message", data);
@@ -68,6 +77,11 @@ app.prepare().then(() => {
 
     socket.on("dialogs-cleared", () => {
       socket.broadcast.emit("dialogs-refresh");
+    });
+
+    socket.on("payment-created", (data: { orderId: string; ownerId: string; [key: string]: unknown }) => {
+      if (!data.orderId || !data.ownerId) return;
+      io.to(data.ownerId).emit("payment-created", data);
     });
   });
 

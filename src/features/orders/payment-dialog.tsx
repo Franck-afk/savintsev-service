@@ -57,7 +57,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, 
         body: JSON.stringify({ action: "confirm" }),
       });
       if (res.ok) {
-        setPayment((prev) => prev ? { ...prev, status: "paid", paidAt: new Date().toISOString() } : prev);
+        setPayment((prev) => prev ? { ...prev, status: "Paid", paidAt: new Date().toISOString() } : prev);
         onPaid();
       }
     } catch { /* ignore */ }
@@ -111,7 +111,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, 
             <CheckCircle className="size-12 text-green-500" />
             <p className="text-sm font-medium text-green-600">Оплачено</p>
           </div>
-        ) : payment?.status === "paid" ? (
+        ) : payment?.status === "Paid" ? (
           <div className="flex flex-col items-center gap-3 py-4">
             <CheckCircle className="size-12 text-green-500" />
             <p className="text-sm font-medium text-green-600">Оплата подтверждена</p>

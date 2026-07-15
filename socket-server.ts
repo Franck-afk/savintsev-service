@@ -67,6 +67,11 @@ io.on("connection", (socket: ServerSocket) => {
     io.to(data.notifyUserId).emit("dialog-removed", data.deletedBy);
   });
 
+  socket.on("payment-created", (data: { orderId: string; ownerId: string; [key: string]: unknown }) => {
+    if (!data.orderId || !data.ownerId) return;
+    io.to(data.ownerId).emit("payment-created", data);
+  });
+
   socket.on("dialogs-cleared", () => {
     socket.broadcast.emit("dialogs-refresh");
   });

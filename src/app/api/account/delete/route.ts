@@ -19,6 +19,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
   }
 
+  if (user.role === "Owner") {
+    return NextResponse.json({ error: "Владелец не может удалить свой аккаунт" }, { status: 403 });
+  }
+
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
     return NextResponse.json({ error: "Неверный пароль" }, { status: 400 });

@@ -16,6 +16,7 @@ function SeedForm() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [secret, setSecret] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -43,7 +44,7 @@ function SeedForm() {
       const response = await fetch("/api/auth/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, secret }),
       });
 
       if (!response.ok) {
@@ -139,7 +140,17 @@ function SeedForm() {
               variant="seed"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Минимум 6 символов"
+              placeholder="Минимум 8 символов"
+              required
+            />
+            <AuthInput
+              id="secret"
+              label="Секретный ключ"
+              type="password"
+              variant="seed"
+              value={secret}
+              onChange={(e) => setSecret(e.target.value)}
+              placeholder="Ключ из .env (SEED_SECRET)"
               required
             />
             <Button type="submit" className="w-full" disabled={loading}>

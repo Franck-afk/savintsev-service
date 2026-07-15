@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+import { disconnectSocket } from "@/shared/api/socket-client";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu, Search } from "lucide-react";
@@ -86,6 +87,7 @@ export function Header({ user }: HeaderProps) {
             variant="ghost"
             size="icon"
             onClick={async () => {
+              disconnectSocket();
               await fetch("/api/chat/offline", { method: "POST" }).catch(() => {});
               signOut({ redirect: false }).then(() => { window.location.href = "/auth/login"; });
             }}

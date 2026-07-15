@@ -29,7 +29,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Заказ не найден" }, { status: 404 });
   }
 
-  if (order.userId !== session.user.id && session.user.role === "Client") {
+  if (order.userId !== session.user.id && session.user.role !== "Owner") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -134,44 +134,48 @@ export async function PATCH(
     const isLast = isLastStage(order.serviceType, nextStage);
     const isFirstAdvance = order.status === "Pending" && nextStage > 0;
 
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        currentStage: nextStage,
-        status: isLast ? "Completed" : isFirstAdvance ? "InProgress" : order.status,
-        ...(order.masterId !== session.user.id ? { masterId: session.user.id } : {}),
-        ...(isLast && price ? { price } : {}),
-      },
-      include: { user: { select: { name: true, email: true } } },
-    });
-
-    let payment = null;
-
-    if (isLast) {
-      await prisma.notification.create({
+    const [updated, payment] = await prisma.$transaction(async (tx) => {
+      const updatedOrder = await tx.order.update({
+        where: { id },
         data: {
-          userId: order.userId,
-          orderId: order.id,
-          type: "order_completed",
-          message: `Заказ «${updated.title}» завершён`,
+          currentStage: nextStage,
+          status: isLast ? "Completed" : isFirstAdvance ? "InProgress" : order.status,
+          ...(order.masterId !== session.user.id ? { masterId: session.user.id } : {}),
+          ...(isLast && price ? { price } : {}),
         },
+        include: { user: { select: { name: true, email: true } } },
       });
 
-      if (price && price > 0) {
-        const paymentId = `pay_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-        const sbpPayload = `https://qr.nspk.ru/${paymentId}?amount=${price}&currency=643&comment=Заказ+${encodeURIComponent(updated.title)}`;
+      let paymentRecord = null;
 
-        payment = await prisma.payment.create({
+      if (isLast) {
+        await tx.notification.create({
           data: {
+            userId: order.userId,
             orderId: order.id,
-            amount: price,
-            method: "sbp",
-            status: "pending",
-            qrData: sbpPayload,
+            type: "order_completed",
+            message: `Заказ «${updatedOrder.title}» завершён`,
           },
         });
+
+        if (price && price > 0) {
+          const paymentId = `pay_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const sbpPayload = `https://qr.nspk.ru/${paymentId}?amount=${price}&currency=643&comment=Заказ+${encodeURIComponent(updatedOrder.title)}`;
+
+          paymentRecord = await tx.payment.create({
+            data: {
+              orderId: order.id,
+              amount: price,
+              method: "SBP",
+              status: "Pending",
+              qrData: sbpPayload,
+            },
+          });
+        }
       }
-    }
+
+      return [updatedOrder, paymentRecord] as const;
+    });
 
     return NextResponse.json({ ...updated, payment });
   }

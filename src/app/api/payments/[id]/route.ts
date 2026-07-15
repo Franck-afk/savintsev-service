@@ -30,7 +30,7 @@ export async function PATCH(
       const updated = await prisma.payment.update({
         where: { id },
         data: {
-          status: "paid",
+          status: "Paid",
           paidAt: new Date(),
           confirmedBy: session.user.id,
         },
@@ -38,7 +38,7 @@ export async function PATCH(
 
       await prisma.order.update({
         where: { id: payment.orderId },
-        data: { paidAt: new Date() },
+        data: { paidAt: new Date(), status: "Paid" },
       });
 
       return NextResponse.json(updated);
@@ -47,7 +47,7 @@ export async function PATCH(
     if (action === "cancel") {
       const updated = await prisma.payment.update({
         where: { id },
-        data: { status: "cancelled" },
+        data: { status: "Cancelled" },
       });
       return NextResponse.json(updated);
     }

@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     const existing = await prisma.payment.findFirst({
-      where: { orderId, status: "pending" },
+      where: { orderId, status: "Pending" },
     });
     if (existing) {
       return NextResponse.json(existing);
@@ -40,8 +40,8 @@ export async function POST(request: Request) {
       data: {
         orderId,
         amount,
-        method: "sbp",
-        status: "pending",
+        method: "SBP",
+        status: "Pending",
         qrData: sbpPayload,
       },
     });

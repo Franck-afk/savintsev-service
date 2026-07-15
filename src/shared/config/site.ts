@@ -1,6 +1,6 @@
 export const siteConfig = {
-  name: "My App",
-  description: "Next.js 16 with FSD architecture",
+  name: "Шинный Мастер",
+  description: "Профессиональный шиномонтаж, хранение шин и ремонт дисков",
   url: "http://localhost:3000",
 } as const;
 

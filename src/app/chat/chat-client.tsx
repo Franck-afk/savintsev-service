@@ -76,6 +76,7 @@ export function ChatClient({ userId, userRole }: { userId: string; userRole: str
   useEffect(() => {
     const fetchOnline = async () => {
       try {
+        await fetch("/api/chat/ping", { method: "POST" }).catch(() => {});
         const res = await fetch("/api/chat/online");
         if (res.ok) { const ids: string[] = await res.json(); setOnlineCount(ids.length); setOnlineUsers(new Set(ids)); }
       } catch { /* ignore */ }

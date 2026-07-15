@@ -6,6 +6,20 @@ import { roleRoutes } from "@/shared/constants/role-routes";
 const publicRoutes = ["/", "/auth/login", "/auth/register", "/auth/seed", "/privacy"];
 const publicApiRoutes = ["/api/auth/"];
 
+const loginRateLimit = new Map<string, { count: number; resetAt: number }>();
+
+function checkLoginRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = loginRateLimit.get(ip);
+  if (!record || now > record.resetAt) {
+    loginRateLimit.set(ip, { count: 1, resetAt: now + 300000 });
+    return true;
+  }
+  if (record.count >= 10) return false;
+  record.count++;
+  return true;
+}
+
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
@@ -30,6 +44,12 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/api/")) {
     if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
+      if (pathname.startsWith("/api/auth/callback") && method === "POST") {
+        const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+        if (!checkLoginRateLimit(ip)) {
+          return NextResponse.json({ error: "Слишком много попыток. Попробуйте через 5 минут" }, { status: 429 });
+        }
+      }
       return addSecurityHeaders(NextResponse.next());
     }
 
@@ -73,6 +93,11 @@ function addSecurityHeaders(response: NextResponse) {
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' ws: wss:; frame-ancestors 'none';"
+  );
+  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
   return response;
 }
 

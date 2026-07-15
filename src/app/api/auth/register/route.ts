@@ -21,6 +21,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: "Пароль должен быть не менее 8 символов" },
+        { status: 400 }
+      );
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });

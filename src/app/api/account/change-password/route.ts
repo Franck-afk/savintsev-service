@@ -22,8 +22,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Все поля обязательны" }, { status: 400 });
   }
 
-  if (newPassword.length < 6) {
-    return NextResponse.json({ error: "Новый пароль минимум 6 символов" }, { status: 400 });
+  if (newPassword.length < 8) {
+    return NextResponse.json({ error: "Новый пароль минимум 8 символов" }, { status: 400 });
   }
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Текущий пароль неверен" }, { status: 400 });
   }
 
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
   await prisma.user.update({
     where: { id: user.id },
     data: { password: hashedPassword },

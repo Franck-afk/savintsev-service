@@ -64,30 +64,36 @@ model Order {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  user        User      @relation("ClientOrders", fields: [userId], references: [id], onDelete: Cascade)
-  master      User?     @relation("MasterOrders", fields: [masterId], references: [id], onDelete: SetNull)
-  messages    Message[]
+  user          User          @relation("ClientOrders", fields: [userId], references: [id], onDelete: Cascade)
+  master        User?         @relation("MasterOrders", fields: [masterId], references: [id], onDelete: SetNull)
+  messages      Message[]
   notifications Notification[]
-  timeSlot    TimeSlot?
-  payments    Payment[]
+  timeSlot      TimeSlot?
+  payments      Payment[]
 
+  @@index([userId])
+  @@index([masterId])
+  @@index([status])
   @@map("orders")
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  content   String
-  senderId  String
-  receiverId String
-  orderId   String?
+  id          String   @id @default(cuid())
+  content     String
+  senderId    String
+  receiverId  String
+  orderId     String?
   attachments Json     @default("[]")
-  readAt     DateTime?
-  createdAt    DateTime @default(now())
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
 
   sender   User   @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User   @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
   order    Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([orderId])
   @@map("messages")
 }
 
@@ -101,8 +107,9 @@ model Notification {
   createdAt DateTime  @default(now())
 
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  order Order? @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
+  @@index([userId])
   @@map("notifications")
 }
 
@@ -136,6 +143,35 @@ model TimeSlot {
   @@map("time_slots")
 }
 
+enum PaymentStatus {
+  Pending
+  Paid
+  Cancelled
+}
+
+enum PaymentMethod {
+  SBP
+  Cash
+  Card
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  orderId     String
+  amount      Int           // сумма в копейках
+  status      PaymentStatus @default(Pending)
+  method      PaymentMethod @default(SBP)
+  qrData      String?       // данные для QR-кода
+  paidAt      DateTime?
+  confirmedBy String?       // кто подтвердил оплату
+  createdAt   DateTime      @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@map("payments")
+}
+
 enum TireSeason {
   Winter
   Summer
@@ -166,6 +202,7 @@ model Tire {
 
   owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
+  @@index([ownerId])
   @@map("tires")
 }
 
@@ -180,18 +217,4 @@ model CompanySettings {
   @@map("company_settings")
 }
 
-model Payment {
-  id        String   @id @default(cuid())
-  orderId   String
-  amount    Int      // сумма в копейках
-  status    String   @default("pending") // pending, paid, cancelled
-  method    String   @default("sbp")     // sbp, cash, card
-  qrData    String?  // данные для QR-кода
-  paidAt    DateTime?
-  confirmedBy String? // кто подтвердил оплату
-  createdAt DateTime @default(now())
 
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@map("payments")
-}
