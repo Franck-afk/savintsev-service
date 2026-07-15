@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { roleRoutes } from "@/shared/constants/role-routes";
 
 const publicRoutes = ["/", "/auth/login", "/auth/register", "/auth/seed", "/privacy"];
-const publicApiRoutes = ["/api/auth/", "/api/users/masters", "/api/users/online-masters", "/api/debug/"];
+const publicApiRoutes = ["/api/auth/", "/api/users/masters", "/api/users/online-masters"];
 
 const loginRateLimit = new Map<string, { count: number; resetAt: number }>();
 
