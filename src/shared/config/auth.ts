@@ -62,7 +62,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           select: { role: true, phone: true, name: true, avatarUrl: true },
         });
         if (!dbUser) {
-          return null;
+          token.role = undefined;
+          token.name = undefined;
+          token.phone = undefined;
+          token.avatarUrl = undefined;
+          return token;
         }
         token.name = dbUser.name;
         token.role = dbUser.role;
