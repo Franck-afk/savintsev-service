@@ -61,12 +61,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { id: token.sub },
           select: { role: true, phone: true, name: true, avatarUrl: true },
         });
-        if (dbUser) {
-          token.name = dbUser.name;
-          token.role = dbUser.role;
-          token.phone = dbUser.phone;
-          token.avatarUrl = dbUser.avatarUrl;
+        if (!dbUser) {
+          return null;
         }
+        token.name = dbUser.name;
+        token.role = dbUser.role;
+        token.phone = dbUser.phone;
+        token.avatarUrl = dbUser.avatarUrl;
       }
       return token;
     },
