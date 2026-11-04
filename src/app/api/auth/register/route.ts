@@ -11,6 +11,12 @@ export async function POST(request: Request) {
   if (!allowed) {
     return NextResponse.json({ error: "Слишком много попыток. Попробуйте через минуту" }, { status: 429 });
   }
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json(
+      { error: "Регистрация недоступна: база данных не подключена в этом окружении." },
+      { status: 503 },
+    );
+  }
 
   try {
     const body = await request.json();
@@ -71,6 +77,15 @@ export async function POST(request: Request) {
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error("Registration error:", error);
+    const code = typeof error === "object" && error !== null && "code" in error
+      ? error.code
+      : undefined;
+    if (code === "P2022") {
+      return NextResponse.json(
+        { error: "Регистрация недоступна: схема базы данных не обновлена." },
+        { status: 503 },
+      );
+    }
     return NextResponse.json(
       { error: "Ошибка при регистрации" },
       { status: 500 }
