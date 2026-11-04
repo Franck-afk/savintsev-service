@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { roleRoutes } from "@/shared/constants/role-routes";
+import { matchesRoute } from "@/shared/lib/route-matching";
 
 const publicRoutes = ["/", "/auth/login", "/auth/register", "/auth/seed", "/privacy"];
 const publicApiRoutes = ["/api/auth/", "/api/users/masters", "/api/users/online-masters"];
@@ -22,13 +23,14 @@ function checkLoginRateLimit(ip: string): boolean {
 
 function validateOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
-  const host = request.headers.get("host");
   if (!origin) return true;
+
   try {
-    const originHost = new URL(origin).host;
-    if (host && originHost === host) return true;
-    const allowed = process.env.NEXTAUTH_URL || "http://localhost:3000";
-    return origin.startsWith(allowed);
+    const originValue = new URL(origin).origin;
+    if (originValue === request.nextUrl.origin) return true;
+
+    const configuredOrigin = process.env.NEXTAUTH_URL;
+    return Boolean(configuredOrigin && originValue === new URL(configuredOrigin).origin);
   } catch {
     return false;
   }
@@ -38,13 +40,13 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const method = request.method;
 
-  if (publicRoutes.some((route) => pathname.startsWith(route))) {
+  if (publicRoutes.some((route) => matchesRoute(pathname, route))) {
     return addSecurityHeaders(NextResponse.next());
   }
 
   if (pathname.startsWith("/api/")) {
-    if (publicApiRoutes.some((route) => pathname.startsWith(route))) {
-      if (pathname.startsWith("/api/auth/callback") && method === "POST") {
+    if (publicApiRoutes.some((route) => matchesRoute(pathname, route))) {
+      if (matchesRoute(pathname, "/api/auth/callback") && method === "POST") {
         const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
         if (!checkLoginRateLimit(ip)) {
           return NextResponse.json({ error: "Слишком много попыток. Попробуйте через 5 минут" }, { status: 429 });
@@ -80,7 +82,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const allowedRoutes = roleRoutes[userRole] || [];
-  const isAllowed = allowedRoutes.some((route) => pathname.startsWith(route));
+  const isAllowed = allowedRoutes.some((route) => matchesRoute(pathname, route));
   if (!isAllowed) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }

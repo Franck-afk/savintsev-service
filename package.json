@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx server.ts",
+    "test": "tsx --test src/shared/lib/*.test.ts",
     "build": "next build",
     "start": "next start",
     "socket": "tsx socket-server.ts",

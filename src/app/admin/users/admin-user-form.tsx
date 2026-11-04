@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AuthInput } from "@/features/auth/ui/auth-input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { MIN_PASSWORD_LENGTH } from "@/shared/constants/auth";
 
 interface UserFormData {
   email: string;
@@ -28,7 +29,7 @@ interface AdminUserFormProps {
 
 export function AdminUserForm({
   data, onChange, onSubmit, error, saving, onCancel,
-  submitLabel, savingLabel, showPassword = true, passwordPlaceholder = "Минимум 6 символов",
+  submitLabel, savingLabel, showPassword = true, passwordPlaceholder = `Минимум ${MIN_PASSWORD_LENGTH} символов`,
 }: AdminUserFormProps) {
   const update = (field: keyof UserFormData, value: string) => onChange({ ...data, [field]: value });
 

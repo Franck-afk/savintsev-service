@@ -28,6 +28,8 @@ model User {
   password  String
   role      UserRole @default(Client)
   phone     String?
+  personalDataConsentAt      DateTime?
+  personalDataConsentVersion String?
   avatarUrl String?
   isVisible Boolean  @default(true)
   lastSeen  DateTime?

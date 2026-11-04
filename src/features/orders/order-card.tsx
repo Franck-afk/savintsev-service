@@ -85,7 +85,7 @@ export function OrderCard({ order, onClick, onDelete, role, onUpdated }: OrderCa
 
   useEffect(() => {
     if (!session?.user?.id || !isClient) return;
-    const socket = getSocket(session.user.id);
+    const socket = getSocket();
     const handler = (data: { orderId: string; amount: number; qrData: string | null; id: string }) => {
       if (data.orderId === order.id) {
         setPaymentOpen(true);
@@ -124,7 +124,7 @@ export function OrderCard({ order, onClick, onDelete, role, onUpdated }: OrderCa
       const res = await fetch(`/api/orders/${order.id}`, { method: "DELETE" });
       if (res.ok) {
         if (session?.user?.id && order.userId) {
-          const socket = getSocket(session.user.id);
+          const socket = getSocket();
           socket.emit("order-deleted", { orderId: order.id, ownerId: order.userId });
         }
         onDelete?.(order.id);
@@ -282,7 +282,7 @@ export function OrderCard({ order, onClick, onDelete, role, onUpdated }: OrderCa
               {order.paidAt ? (
                 <><CheckCircle className="size-3.5" /> Оплачено</>
               ) : (
-                <><CreditCard className="size-3.5" /> Оплата СБП</>
+                <><CreditCard className="size-3.5" /> СБП (демо)</>
               )}
             </Button>
           </div>
@@ -309,7 +309,6 @@ export function OrderCard({ order, onClick, onDelete, role, onUpdated }: OrderCa
       orderTitle={order.title}
       price={order.price ?? 0}
       paid={!!order.paidAt}
-      onPaid={onUpdated ?? (() => {})}
     />
     </>
   );

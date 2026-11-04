@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/shared/api/prisma";
 import { auth } from "@/shared/config/auth";
+import { MIN_PASSWORD_LENGTH } from "@/shared/constants/auth";
+import { hasMinimumPasswordLength } from "@/shared/lib/auth-validation";
 
 async function checkOwner() {
   const session = await auth();
@@ -17,7 +19,7 @@ export async function GET() {
   }
 
   const users = await prisma.user.findMany({
-    select: { id: true, email: true, name: true, role: true, phone: true, avatarUrl: true, isVisible: true, createdAt: true, password: true },
+    select: { id: true, email: true, name: true, role: true, phone: true, avatarUrl: true, isVisible: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -35,6 +37,12 @@ export async function POST(request: Request) {
 
     if (!email || !password || !role) {
       return NextResponse.json({ error: "Email, пароль и роль обязательны" }, { status: 400 });
+    }
+    if (!hasMinimumPasswordLength(password)) {
+      return NextResponse.json(
+        { error: `Пароль должен быть не менее ${MIN_PASSWORD_LENGTH} символов` },
+        { status: 400 },
+      );
     }
 
     if (!["Master", "Client"].includes(role)) {
@@ -86,7 +94,15 @@ export async function PATCH(request: Request) {
     if (name !== undefined) data.name = name || null;
     if (phone !== undefined) data.phone = phone || null;
     if (role && ["Master", "Client"].includes(role)) data.role = role;
-    if (password && password.length >= 6) data.password = await bcrypt.hash(password, 12);
+    if (password) {
+      if (!hasMinimumPasswordLength(password)) {
+        return NextResponse.json(
+          { error: `Пароль должен быть не менее ${MIN_PASSWORD_LENGTH} символов` },
+          { status: 400 },
+        );
+      }
+      data.password = await bcrypt.hash(password, 12);
+    }
     if (typeof isVisible === "boolean") data.isVisible = isVisible;
 
     const user = await prisma.user.update({

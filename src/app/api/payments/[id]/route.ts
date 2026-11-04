@@ -27,21 +27,10 @@ export async function PATCH(
     }
 
     if (action === "confirm") {
-      const updated = await prisma.payment.update({
-        where: { id },
-        data: {
-          status: "Paid",
-          paidAt: new Date(),
-          confirmedBy: session.user.id,
-        },
-      });
-
-      await prisma.order.update({
-        where: { id: payment.orderId },
-        data: { paidAt: new Date(), status: "Paid" },
-      });
-
-      return NextResponse.json(updated);
+      return NextResponse.json(
+        { error: "Демо-платёж нельзя подтвердить. Подключите СБП-провайдера для фиксации оплаты." },
+        { status: 409 },
+      );
     }
 
     if (action === "cancel") {

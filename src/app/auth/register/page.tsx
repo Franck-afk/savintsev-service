@@ -9,6 +9,7 @@ import { AuthInput } from "@/features/auth/ui/auth-input";
 import { AuthLayout } from "@/widgets/auth/auth-layout";
 import { notifySuccess, notifyError } from "@/shared/lib/notifications";
 import { Wrench, Loader2 } from "lucide-react";
+import { MIN_PASSWORD_LENGTH } from "@/shared/constants/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -34,9 +35,10 @@ export default function RegisterPage() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      notifyError("Пароль должен быть не менее 6 символов");
-      setError("Пароль должен быть не менее 6 символов");
+    if (formData.password.length < MIN_PASSWORD_LENGTH) {
+      const message = `Пароль должен быть не менее ${MIN_PASSWORD_LENGTH} символов`;
+      notifyError(message);
+      setError(message);
       return;
     }
 
@@ -53,7 +55,7 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name, email: formData.email,
-          phone: formData.phone, password: formData.password,
+          phone: formData.phone, password: formData.password, consent,
         }),
       });
 
@@ -101,7 +103,7 @@ export default function RegisterPage() {
               onChange={handleChange} placeholder="+7 (999) 123-45-67" />
 
             <AuthInput id="password" label="Пароль" name="password" type="password" variant="register" value={formData.password}
-              onChange={handleChange} placeholder="Минимум 6 символов" required />
+              onChange={handleChange} placeholder={`Минимум ${MIN_PASSWORD_LENGTH} символов`} required />
 
             <AuthInput id="confirmPassword" label="Подтвердите пароль" name="confirmPassword"
               type="password" variant="register" value={formData.confirmPassword}
@@ -109,8 +111,10 @@ export default function RegisterPage() {
 
             <label className="flex items-start gap-3 text-sm text-muted-foreground">
               <input
+                id="personal-data-consent"
                 type="checkbox"
                 checked={consent}
+                required
                 onChange={(e) => setConsent(e.target.checked)}
                 className="mt-0.5 size-4 shrink-0 rounded border-border accent-primary"
               />

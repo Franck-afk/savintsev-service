@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, AlertTriangle, Trash2, Loader2, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { MIN_PASSWORD_LENGTH } from "@/shared/constants/auth";
 
 function PasswordInput({ id, label, value, onChange, show, setShow, placeholder }: {
   id: string; label: string; value: string; onChange: (v: string) => void;
@@ -40,7 +41,7 @@ export function SecurityTab() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault(); setError(""); setSuccess("");
     if (form.newPassword !== form.confirmPassword) { setError("Новые пароли не совпадают"); return; }
-    if (form.newPassword.length < 6) { setError("Новый пароль минимум 6 символов"); return; }
+    if (form.newPassword.length < MIN_PASSWORD_LENGTH) { setError(`Новый пароль минимум ${MIN_PASSWORD_LENGTH} символов`); return; }
     setSaving(true);
     try {
       const res = await fetch("/api/account/change-password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currentPassword: form.currentPassword, newPassword: form.newPassword }) });
@@ -72,7 +73,7 @@ export function SecurityTab() {
             {error && <div className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</div>}
             {success && <div className="rounded-lg bg-green-500/10 px-3 py-2 text-xs text-green-500 flex items-center gap-1.5"><CheckCircle className="size-3.5" />{success}</div>}
             <PasswordInput id="current-password" label="Текущий пароль" value={form.currentPassword} onChange={(v) => setForm({ ...form, currentPassword: v })} show={showCurrent} setShow={setShowCurrent} placeholder="Введите текущий пароль" />
-            <PasswordInput id="new-password" label="Новый пароль" value={form.newPassword} onChange={(v) => setForm({ ...form, newPassword: v })} show={showNew} setShow={setShowNew} placeholder="Минимум 6 символов" />
+            <PasswordInput id="new-password" label="Новый пароль" value={form.newPassword} onChange={(v) => setForm({ ...form, newPassword: v })} show={showNew} setShow={setShowNew} placeholder={`Минимум ${MIN_PASSWORD_LENGTH} символов`} />
             <PasswordInput id="confirm-password" label="Подтвердите новый пароль" value={form.confirmPassword} onChange={(v) => setForm({ ...form, confirmPassword: v })} show={showConfirm} setShow={setShowConfirm} placeholder="Повторите новый пароль" />
             <Button type="submit" size="sm" disabled={saving}>
               {saving ? <><Loader2 className="size-3.5 animate-spin" /> Изменение...</> : "Изменить пароль"}

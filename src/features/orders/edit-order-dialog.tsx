@@ -96,7 +96,7 @@ export function EditOrderDialog({ order, onUpdated }: EditOrderDialogProps) {
 
       const updated = await res.json();
       if (session?.user?.id && order.userId) {
-        const socket = getSocket(session.user.id);
+        const socket = getSocket();
         socket.emit("order-stage-updated", {
           orderId: order.id,
           ownerId: order.userId,

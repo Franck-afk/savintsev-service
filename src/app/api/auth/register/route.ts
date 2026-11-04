@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/shared/api/prisma";
 import { rateLimit, getClientIp } from "@/shared/lib/rate-limit";
+import { MIN_PASSWORD_LENGTH, PERSONAL_DATA_CONSENT_VERSION } from "@/shared/constants/auth";
+import { hasAcceptedPersonalDataConsent, hasMinimumPasswordLength } from "@/shared/lib/auth-validation";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
@@ -12,7 +14,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { email, password, name, phone } = body;
+    const { email, password, name, phone, consent } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -21,9 +23,16 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 8) {
+    if (!hasMinimumPasswordLength(password)) {
       return NextResponse.json(
-        { error: "Пароль должен быть не менее 8 символов" },
+        { error: `Пароль должен быть не менее ${MIN_PASSWORD_LENGTH} символов` },
+        { status: 400 }
+      );
+    }
+
+    if (!hasAcceptedPersonalDataConsent(consent)) {
+      return NextResponse.json(
+        { error: "Необходимо согласие на обработку персональных данных" },
         { status: 400 }
       );
     }
@@ -48,6 +57,8 @@ export async function POST(request: Request) {
         name: name || null,
         phone: phone || null,
         role: "Client",
+        personalDataConsentAt: new Date(),
+        personalDataConsentVersion: PERSONAL_DATA_CONSENT_VERSION,
       },
       select: {
         id: true,

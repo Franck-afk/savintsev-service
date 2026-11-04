@@ -57,7 +57,7 @@ export function MasterClient({ userId, role }: { userId: string; role: string })
 
   useEffect(() => {
     if (!session?.user?.id) return;
-    const socket = getSocket(session.user.id);
+    const socket = getSocket();
     const handler = (data: { orderId: string; currentStage: number; status: string }) => {
       setOrders((prev) =>
         prev.map((o) =>

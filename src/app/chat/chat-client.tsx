@@ -51,7 +51,7 @@ export function ChatClient({ userId, userRole }: { userId: string; userRole: str
   useEffect(() => { activeDialogRef.current = activeDialog; }, [activeDialog]);
 
   useEffect(() => {
-    socketRef.current = getSocket(userId);
+    socketRef.current = getSocket();
     const msgHandler = async (msg: Message) => {
       setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]);
       if (activeDialogRef.current?.interlocutor.id === msg.senderId) {

@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { prisma } from "@/shared/api/prisma";
 import { rateLimit, getClientIp } from "@/shared/lib/rate-limit";
+import { MIN_PASSWORD_LENGTH } from "@/shared/constants/auth";
+import { hasMinimumPasswordLength } from "@/shared/lib/auth-validation";
 
 const SEED_SECRET = process.env.SEED_SECRET;
 
@@ -55,9 +57,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password.length < 8) {
+    if (!hasMinimumPasswordLength(password)) {
       return NextResponse.json(
-        { error: "Пароль должен быть не менее 8 символов" },
+        { error: `Пароль должен быть не менее ${MIN_PASSWORD_LENGTH} символов` },
         { status: 400 }
       );
     }

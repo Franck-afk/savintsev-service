@@ -22,13 +22,11 @@ interface PaymentDialogProps {
   orderTitle: string;
   price: number;
   paid: boolean;
-  onPaid: () => void;
 }
 
-export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, paid, onPaid }: PaymentDialogProps) {
+export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, paid }: PaymentDialogProps) {
   const [payment, setPayment] = useState<Payment | null>(null);
   const [loading, setLoading] = useState(false);
-  const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
   const [amountRub, setAmountRub] = useState(price > 0 ? (price / 100).toString() : "");
 
@@ -45,23 +43,6 @@ export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, 
       if (res.ok) setPayment(await res.json());
     } catch { /* ignore */ }
     setLoading(false);
-  };
-
-  const handleConfirm = async () => {
-    if (!payment) return;
-    setConfirming(true);
-    try {
-      const res = await fetch(`/api/payments/${payment.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "confirm" }),
-      });
-      if (res.ok) {
-        setPayment((prev) => prev ? { ...prev, status: "Paid", paidAt: new Date().toISOString() } : prev);
-        onPaid();
-      }
-    } catch { /* ignore */ }
-    setConfirming(false);
   };
 
   const handleCancel = async () => {
@@ -101,7 +82,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="size-5" />
-            Оплата СБП
+            Демо-оплата СБП
           </DialogTitle>
           <DialogDescription>{orderTitle}</DialogDescription>
         </DialogHeader>
@@ -131,6 +112,10 @@ export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, 
               </div>
             </div>
 
+            <p className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
+              Тестовый QR-код: перевод денег не выполняется. Подтверждение оплаты отключено до подключения провайдера.
+            </p>
+
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Статус:</span>
@@ -142,16 +127,10 @@ export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, 
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1" onClick={handleCopy}>
-                {copied ? <CheckCircle className="size-3.5" /> : <Copy className="size-3.5" />}
-                {copied ? "Скопировано" : "Ссылка"}
-              </Button>
-              <Button size="sm" className="flex-1" onClick={handleConfirm} disabled={confirming}>
-                {confirming ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle className="size-3.5" />}
-                Подтвердить
-              </Button>
-            </div>
+            <Button variant="outline" size="sm" className="w-full" onClick={handleCopy}>
+              {copied ? <CheckCircle className="size-3.5" /> : <Copy className="size-3.5" />}
+              {copied ? "Скопировано" : "Скопировать тестовую ссылку"}
+            </Button>
             <Button variant="ghost" size="sm" className="w-full text-destructive" onClick={handleCancel}>
               <XCircle className="size-3.5" /> Отменить платёж
             </Button>
@@ -176,7 +155,7 @@ export function PaymentDialog({ open, onOpenChange, orderId, orderTitle, price, 
               disabled={loading || !amountRub || parseFloat(amountRub) <= 0}
             >
               {loading ? <Loader2 className="size-4 animate-spin" /> : <CreditCard className="size-4" />}
-              {loading ? "Генерация..." : "Сформировать QR-код СБП"}
+              {loading ? "Генерация..." : "Сформировать демо-QR-код"}
             </Button>
           </div>
         )}

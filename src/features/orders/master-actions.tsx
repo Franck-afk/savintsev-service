@@ -28,7 +28,7 @@ export function MasterActions({ orderId, ownerId, status, isLastStage, onUpdated
 
   const emitStageUpdate = (newStage: number, newStatus: string) => {
     if (!session?.user?.id) return;
-    const socket = getSocket(session.user.id);
+    const socket = getSocket();
     socket.emit("order-stage-updated", {
       orderId,
       ownerId,
@@ -39,7 +39,7 @@ export function MasterActions({ orderId, ownerId, status, isLastStage, onUpdated
 
   const emitPaymentCreated = (payment: { id: string; amount: number; qrData: string | null; orderId: string }) => {
     if (!session?.user?.id) return;
-    const socket = getSocket(session.user.id);
+    const socket = getSocket();
     socket.emit("payment-created", {
       ...payment,
       ownerId,
