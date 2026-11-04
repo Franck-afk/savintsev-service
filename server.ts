@@ -1,10 +1,15 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
+import { randomBytes } from "node:crypto";
 import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
 import { attachSocketHandlers, getAllowedSocketOrigins } from "./src/shared/lib/socket-io";
 
 const dev = process.env.NODE_ENV !== "production";
+if (dev && !process.env.AUTH_SECRET) {
+  process.env.AUTH_SECRET = randomBytes(32).toString("hex");
+}
+
 const hostname = "localhost";
 const port = parseInt(process.env.PORT || "3000", 10);
 
