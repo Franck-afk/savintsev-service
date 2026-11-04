@@ -1,11 +1,13 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { randomBytes } from "node:crypto";
+import { loadEnvConfig } from "@next/env";
 import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
-import { attachSocketHandlers, getAllowedSocketOrigins } from "./src/shared/lib/socket-io";
 
 const dev = process.env.NODE_ENV !== "production";
+loadEnvConfig(process.cwd(), dev);
+
 if (dev && !process.env.AUTH_SECRET) {
   process.env.AUTH_SECRET = randomBytes(32).toString("hex");
 }
@@ -15,7 +17,8 @@ const port = parseInt(process.env.PORT || "3000", 10);
 
 const app = next({ dev, hostname, port });
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
+  const { attachSocketHandlers, getAllowedSocketOrigins } = await import("./src/shared/lib/socket-io");
   const httpServer = createServer();
   const handler = app.getRequestHandler();
 
